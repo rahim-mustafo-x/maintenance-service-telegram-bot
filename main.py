@@ -1,16 +1,24 @@
-# This is a sample Python script.
+from aiogram import Bot, Dispatcher, types
+from aiogram.filters import CommandStart
+from routes import app
+from config import BOT_TOKEN
+from asyncio import run, gather
+from uvicorn import Server, Config
 
-# Press Shift+F10 to execute it or replace it with your code.
-# Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
+dispatcher = Dispatcher()
+bot = Bot(token=BOT_TOKEN)
 
+@dispatcher.message(CommandStart())
+async def start(message: types.Message):
+    await message.answer('Hi')
 
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press Ctrl+F8 to toggle the breakpoint.
+async def main():
+    config = Config(app=app, port=8000, log_level='info')
+    server = Server(config=config)
+    await gather(
+        dispatcher.start_polling(bot),
+        server.serve()
+    )
 
-
-# Press the green button in the gutter to run the script.
 if __name__ == '__main__':
-    print_hi('PyCharm')
-
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
+    run(main())
