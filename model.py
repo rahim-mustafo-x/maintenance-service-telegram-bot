@@ -1,5 +1,16 @@
 from dataclasses import dataclass
 from typing import Optional
+from aiogram.fsm.state import (State, StatesGroup)
+
+"""
+from server -> code,phone number -> +id to the database
+from telegram -> 
+->name to call them,
+ phone_number to find and give the code to them,
+ chat_id for all broadcasting,
+ normal id to store it in db
+
+"""
 
 @dataclass
 class User:
@@ -8,18 +19,11 @@ class User:
     phone_number: str
     chat_id: int
 
-    def __init__(self, full_name: str, phone_number: str, chat_id: int):
-        self.full_name = full_name
-        self.phone_number = phone_number
-        self.chat_id = chat_id
-
 @dataclass
 class TokenData:
     id: Optional[int]  # Optional because new tokens don't have an ID yet
-    pending_token: str
-    otp_code: str
-    token: str
-    def __init__(self, pending_token: str, otp_code: str, token: str):
-        self.pending_token = pending_token
-        self.otp_code = otp_code
-        self.token = token
+    code: str
+    phone_number: str #to recognize with
+
+class UserStartState(StatesGroup):
+    StartClicked = State()

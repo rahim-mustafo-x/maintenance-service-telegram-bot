@@ -1,6 +1,5 @@
 from sqlite3 import connect
 from os import makedirs
-# Import your dataclasses
 from model import (User, TokenData)
 
 
@@ -17,20 +16,19 @@ class Database:
         # 1. Users Table
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS users (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                id integer primary key autoincrement,
                 full_name TEXT NOT NULL,
                 phone_number TEXT UNIQUE NOT NULL,
-                chat_id INTEGER NOT NULL
+                chat_id integer not null
             )
         """)
 
         # 2. Tokens Table
         cursor.execute("""
-            CREATE TABLE IF NOT EXISTS tokens (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                pending_token TEXT NOT NULL,
-                otp_code TEXT NOT NULL,
-                token TEXT NOT NULL
+            CREATE TABLE IF NOT EXISTS token_data (
+                id integer primary key autoincrement,
+                code TEXT NOT NULL,
+                phone_number text NOT NULL
             )
         """)
         conn.commit()
@@ -43,26 +41,25 @@ class Database:
         conn = connect(self.db_path)
         cursor = conn.cursor()
         cursor.execute(
-            "INSERT INTO tokens (pending_token, otp_code, token) VALUES (?, ?, ?)",
-            (token_obj.pending_token, token_obj.otp_code, token_obj.token)
+            'INSERT INTO token_data (code, phone_number) VALUES (?, ?)',
+            (token_obj.code, token_obj.phone_number)
         )
         conn.commit()
         conn.close()
 
-    # GET: Returns a clean TokenData object instead of a tuple
-    def get_token_by_pending(self, pending_str: str) -> TokenData | None:
+    def get_token_data_by_phone_number(self, phone_number: str) -> TokenData | None:
         conn = connect(self.db_path)
         cursor = conn.cursor()
         cursor.execute(
-            "SELECT id, pending_token, otp_code, token FROM tokens WHERE pending_token = ?",
-            (pending_str,)
+            'SELECT id, code, phone_number FROM token_data WHERE phone_number = ?',
+            (phone_number,)
         )
         row = cursor.fetchone()
         conn.close()
 
         if row:
             # Unpack the row directly into the dataclass layout
-            return TokenData(id=row[0], pending_token=row[1], otp_code=row[2], token=row[3])
+            return TokenData(id=row[0],code=row[1], phone_number=row[2])
         return None
 
     # --- USERS OPERATIONS ---
@@ -71,27 +68,35 @@ class Database:
         conn = connect(self.db_path)
         cursor = conn.cursor()
         cursor.execute(
-            "INSERT INTO users (full_name, phone_number, chat_id) VALUES (?, ?, ?)",
+            'INSERT INTO users (full_name, phone_number, chat_id) VALUES (?, ?, ?)',
             (user_obj.full_name, user_obj.phone_number, user_obj.chat_id)
         )
         conn.commit()
         conn.close()
 
-    def get_user(self, chat_id: int) -> User | None:
-        conn = connect(self.db_path)
-        cursor = conn.cursor()
-        cursor.execute("SELECT id, full_name, phone_number, chat_id FROM users WHERE chat_id = ?", (chat_id,))
-        row = cursor.fetchone()
-        conn.close()
-
-        if row:
-            return User(id=row[0], full_name=row[1], phone_number=row[2], chat_id=row[3])
-        return None
-
     def get_all_users(self) -> list[int]:
         conn = connect(self.db_path)
         cursor = conn.cursor()
-        cursor.execute("SELECT chat_id FROM users")
+        cursor.execute('SELECT chat_id FROM users')
         rows = cursor.fetchall()
         conn.close()
         return [row[0] for row in rows]
+
+    def get_user_by_chat_id(self, chat_id: int) -> User | None:
+        conn = connect(self.db_path)
+        cursor = conn.cursor()
+        cursor.execute(
+            'SELECT id, full_name, phone_number, chat_id FROM users WHERE chat_id = ?',
+        (chat_id,))
+        row = cursor.fetchone()
+        conn.close()
+        if row:
+            return User(id=row[0],full_name=row[1],phone_number=row[2],chat_id=row[3])
+        return None
+
+    def remove_token_data(self, phone_number: str):
+        conn = connect(self.db_path)
+        cursor = conn.cursor()
+        cursor.execute('DELETE FROM token_data WHERE phone_number = ?', (phone_number,))
+        conn.commit()
+        conn.close()
