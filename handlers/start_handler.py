@@ -12,8 +12,18 @@ from model import UserStartState
 router = Router()
 database = Database()
 
+@router.message(CommandStart())
+async def start(message: Message, state: FSMContext):
+    if not database.get_user_by_chat_id(message.chat.id):
+        markup = share_phone_number
+    else:
+        markup = None
+    await state.set_state(UserStartState.StartClicked)
+    await message.answer('Assalomu aleykum 👋. Ushbu bot <strong>Maintenance Service</strong>ni supporter boti', parse_mode='html', reply_markup=markup)
+
 @router.message(CommandStart(deep_link=True))
 async def start_with_deep_link(message: Message, state: FSMContext, command: CommandObject):
+    print('dsadsa')
     args = command.args
     if not database.get_user_by_chat_id(message.chat.id):
         markup = share_phone_number
@@ -27,15 +37,6 @@ async def start_with_deep_link(message: Message, state: FSMContext, command: Com
                                      parse_mode='html')
                 database.remove_token_data(token_data.phone_number)
     await state.set_state(UserStartState.StartClicked)
-    await message.answer('Assalomu aleykum 👋. Ushbu bot <strong>Maintenance Service</strong>ni supporter boti', parse_mode='html', reply_markup=markup)
-
-@router.message(CommandStart())
-async def start(message: Message, state: FSMContext):
-    if not database.get_user_by_chat_id(message.chat.id):
-        markup = share_phone_number
-    else:
-        markup = None
-        await state.set_state(UserStartState.StartClicked)
     await message.answer('Assalomu aleykum 👋. Ushbu bot <strong>Maintenance Service</strong>ni supporter boti', parse_mode='html', reply_markup=markup)
 
 @router.message(F.contact)
