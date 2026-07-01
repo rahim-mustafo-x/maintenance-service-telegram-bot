@@ -44,7 +44,6 @@ class Database:
             'INSERT INTO token_data (code, phone_number) VALUES (?, ?)',
             (token_obj.code, token_obj.phone_number)
         )
-        print(token_obj)
         conn.commit()
         conn.close()
 

@@ -27,22 +27,21 @@ async def start_with_deep_link(message: Message, state: FSMContext, command: Com
 @router.message(CommandStart())
 async def start_handler(message: Message, state:FSMContext):
     if not database.get_user_by_chat_id(message.chat.id):
-        markup = share_phone_number
+        await message.answer('Assalomu aleykum 👋. Ushbu bot <strong>Maintenance Service</strong>ni supporter boti',
+                             parse_mode='html', reply_markup=share_phone_number)
+        await state.set_state(UserStartState.ClickedRegister)
     else:
-        markup = None
-    await message.answer('Assalomu aleykum 👋. Ushbu bot <strong>Maintenance Service</strong>ni supporter boti',
-                         parse_mode='html', reply_markup=markup)
-    await state.set_state(UserStartState.ClickedRegister)
+        await state.set_state(UserStartState.StartClicked)
 
 @router.message(F.contact, UserStartState.ClickedRegister)
 async def register_user(message: Message, state: FSMContext):
     database.add_user(User(full_name=message.contact.full_name, phone_number= message.contact.phone_number, chat_id=message.from_user.id, id=None))
-    await state.set_state(UserStartState.StartClicked)
     await message.answer('Ro\'yhatga olindingiz 🎉', reply_markup=clear_markup_bar)
+    await state.set_state(UserStartState.StartClicked)
+    print(await state.get_state())
 
 @router.message(F.contact, UserStartState.CodeAfterRegistered)
 async def code_after(message: Message, state: FSMContext):
-    print('aaa')
     database.add_user(User(full_name=message.contact.full_name, phone_number=message.contact.phone_number,
                            chat_id=message.from_user.id, id=None))
     await message.answer('Ro\'yhatga olindingiz 🎉', reply_markup=clear_markup_bar)
@@ -51,6 +50,7 @@ async def code_after(message: Message, state: FSMContext):
     if token_data:
         await send_code(message,user.phone_number)
         await state.set_state(UserStartState.StartClicked)
+
 
 
 async def send_code(message:Message, phone_number:str):
