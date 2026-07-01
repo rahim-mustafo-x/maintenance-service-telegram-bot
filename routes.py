@@ -7,6 +7,7 @@ db = Database()
 
 @app.get("/")
 async def root():
+    print(db.get_tokens())
     return {"message": "Hello World"}
 
 @app.post("/send_code", status_code=status.HTTP_201_CREATED)

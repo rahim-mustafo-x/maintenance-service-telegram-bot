@@ -44,6 +44,7 @@ class Database:
             'INSERT INTO token_data (code, phone_number) VALUES (?, ?)',
             (token_obj.code, token_obj.phone_number)
         )
+        print(token_obj)
         conn.commit()
         conn.close()
 
@@ -51,7 +52,7 @@ class Database:
         conn = connect(self.db_path)
         cursor = conn.cursor()
         cursor.execute(
-            'SELECT id, code, phone_number FROM token_data WHERE phone_number = ?',
+            'SELECT * FROM token_data WHERE phone_number = ?',
             (phone_number,)
         )
         row = cursor.fetchone()
@@ -100,3 +101,10 @@ class Database:
         cursor.execute('DELETE FROM token_data WHERE phone_number = ?', (phone_number,))
         conn.commit()
         conn.close()
+    def get_tokens(self) -> list[TokenData]:
+        conn = connect(self.db_path)
+        cursor = conn.cursor()
+        cursor.execute('SELECT id, code, phone_number FROM token_data')
+        rows = cursor.fetchall()
+        conn.close()
+        return [TokenData(id=row[0], code=row[1], phone_number=row[2]) for row in rows]

@@ -2,16 +2,6 @@ from dataclasses import dataclass
 from typing import Optional
 from aiogram.fsm.state import (State, StatesGroup)
 
-"""
-from server -> code,phone number -> +id to the database
-from telegram -> 
-->name to call them,
- phone_number to find and give the code to them,
- chat_id for all broadcasting,
- normal id to store it in db
-
-"""
-
 @dataclass
 class User:
     id: Optional[int]
@@ -27,3 +17,5 @@ class TokenData:
 
 class UserStartState(StatesGroup):
     StartClicked = State()
+    ClickedRegister = State()
+    CodeAfterRegistered = State()
