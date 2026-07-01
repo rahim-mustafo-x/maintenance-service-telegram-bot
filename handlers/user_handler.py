@@ -10,7 +10,6 @@ database = Database()
 
 @router.message(StateFilter(UserStartState.StartClicked))
 async def user_started(message: Message):
-    print('hi')
     if message.from_user.id in ADMINS:
         await message.answer('Xush kelibsiz admin 😇')
     else:
