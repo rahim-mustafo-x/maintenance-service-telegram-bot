@@ -16,8 +16,7 @@ async def admin_handler(message: Message, state: FSMContext):
 
 @router.message(F.text, RoleOptions.BroadcastUsers)
 async def broadcast_users(message: Message, state: FSMContext):
-    users = db.get_all_users()
-    for user in users:
+    for user in db.get_all_users():
         await bot.send_message(chat_id=user.chat_id, text=message.text)
     await message.answer('Xabar yuborildi ✉️')
     await state.clear()

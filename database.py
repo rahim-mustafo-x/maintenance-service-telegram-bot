@@ -1,5 +1,7 @@
 from sqlite3 import connect
 from os import makedirs
+from typing import Generator
+
 from model import (User, TokenData, TokenRequest)
 
 
@@ -59,7 +61,7 @@ class Database:
 
         if row:
             # Unpack the row directly into the dataclass layout
-            return TokenData(id=row[0],code=row[1], phone_number=row[2])
+            return TokenData(*row)
         return None
 
     # --- USERS OPERATIONS ---
@@ -74,13 +76,13 @@ class Database:
         conn.commit()
         conn.close()
 
-    def get_all_users(self) -> list[User]:
+    def get_all_users(self) -> Generator[User, None, None]:
         conn = connect(self.db_path)
         cursor = conn.cursor()
         cursor.execute('SELECT * FROM users')
-        rows = cursor.fetchall()
+        for row in cursor:
+            yield User(*row)
         conn.close()
-        return [User(row[0], row[1], row[2], row[3]) for row in rows]
 
     def get_user_by_chat_id(self, chat_id: int) -> User | None:
         conn = connect(self.db_path)
@@ -91,7 +93,7 @@ class Database:
         row = cursor.fetchone()
         conn.close()
         if row:
-            return User(id=row[0],full_name=row[1],phone_number=row[2],chat_id=row[3])
+            return User(*row)
         return None
     def get_user_by_chat_phone_number(self, phone_number) -> User | None:
         conn = connect(self.db_path)
@@ -102,7 +104,7 @@ class Database:
         row = cursor.fetchone()
         conn.close()
         if row:
-            return User(id=row[0],full_name=row[1],phone_number=row[2],chat_id=row[3])
+            return User(*row)
         return None
 
     def remove_token_data(self, phone_number: str):
@@ -117,4 +119,4 @@ class Database:
         cursor.execute('SELECT id, code, phone_number FROM token_data')
         rows = cursor.fetchall()
         conn.close()
-        return [TokenData(id=row[0], code=row[1], phone_number=row[2]) for row in rows]
+        return [TokenData(*row) for row in rows]
