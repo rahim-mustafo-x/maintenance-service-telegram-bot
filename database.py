@@ -1,6 +1,6 @@
 from sqlite3 import connect
 from os import makedirs
-from model import (User, TokenData)
+from model import (User, TokenData, TokenRequest)
 
 
 class Database:
@@ -37,12 +37,12 @@ class Database:
     # --- TOKENS OPERATIONS ---
 
     # DO: Pass the dataclass directly to save it
-    def add_token(self, token_obj: TokenData):
+    def add_token(self, request: TokenRequest):
         conn = connect(self.db_path)
         cursor = conn.cursor()
         cursor.execute(
             'INSERT INTO token_data (code, phone_number) VALUES (?, ?)',
-            (token_obj.code, token_obj.phone_number)
+            (request.code, request.phone_number)
         )
         conn.commit()
         conn.close()
@@ -51,8 +51,8 @@ class Database:
         conn = connect(self.db_path)
         cursor = conn.cursor()
         cursor.execute(
-            'SELECT * FROM token_data WHERE phone_number = ?',
-            (phone_number,)
+            'SELECT * FROM token_data WHERE phone_number LIKE ?',
+            ('%'+phone_number+'%',)
         )
         row = cursor.fetchone()
         conn.close()
@@ -74,13 +74,13 @@ class Database:
         conn.commit()
         conn.close()
 
-    def get_all_users(self) -> list[int]:
+    def get_all_users(self) -> list[User]:
         conn = connect(self.db_path)
         cursor = conn.cursor()
-        cursor.execute('SELECT chat_id FROM users')
+        cursor.execute('SELECT * FROM users')
         rows = cursor.fetchall()
         conn.close()
-        return [row[0] for row in rows]
+        return [User(row[0], row[1], row[2], row[3]) for row in rows]
 
     def get_user_by_chat_id(self, chat_id: int) -> User | None:
         conn = connect(self.db_path)
@@ -88,6 +88,17 @@ class Database:
         cursor.execute(
             'SELECT id, full_name, phone_number, chat_id FROM users WHERE chat_id = ?',
         (chat_id,))
+        row = cursor.fetchone()
+        conn.close()
+        if row:
+            return User(id=row[0],full_name=row[1],phone_number=row[2],chat_id=row[3])
+        return None
+    def get_user_by_chat_phone_number(self, phone_number) -> User | None:
+        conn = connect(self.db_path)
+        cursor = conn.cursor()
+        cursor.execute(
+            'SELECT id, full_name, phone_number, chat_id FROM users WHERE phone_number LIKE ?',
+        ('%'+phone_number+'%',))
         row = cursor.fetchone()
         conn.close()
         if row:

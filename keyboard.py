@@ -8,11 +8,15 @@ share_phone_number = ReplyKeyboardMarkup(
     resize_keyboard=True, one_time_keyboard=True
 )
 
-#say something to admin
-#complain about an error
 user_options = ReplyKeyboardMarkup(
     keyboard=[
         [KeyboardButton(text='Admin bilan xabarlashish 💻️'), KeyboardButton(text='Xato haqida habar berish ⚠️')]
+    ],
+    resize_keyboard=True, one_time_keyboard=True
+)
+admin_options = ReplyKeyboardMarkup(
+    keyboard=[
+        [KeyboardButton(text='Yangilik haqida e\'lon berish 📢')]
     ],
     resize_keyboard=True, one_time_keyboard=True
 )

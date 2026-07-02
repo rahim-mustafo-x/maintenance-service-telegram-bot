@@ -15,7 +15,17 @@ class TokenData:
     code: str
     phone_number: str #to recognize with
 
+@dataclass
+class TokenRequest:
+    code: str
+    phone_number: str #to recognize with
+
 class UserStartState(StatesGroup):
-    StartClicked = State()
     ClickedRegister = State()
     CodeAfterRegistered = State()
+class RoleOptions(StatesGroup):
+    #user
+    UserOption = State()
+    #admin
+    AdminOption = State()
+    BroadcastUsers = State()
