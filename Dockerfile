@@ -20,4 +20,4 @@ ENV PORT=${PORT}
 
 EXPOSE 8000
 
-CMD ["uv", "run", "python", "app.py"]
+CMD ["uv", "run", "python", "main.py"]
