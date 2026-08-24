@@ -4,11 +4,12 @@ from asyncio import run, gather
 from uvicorn import Server, Config
 from routes import app
 from telegram_bot import bot
+from config import PORT
 
 dispatcher = Dispatcher()
 
 async def main():
-    config = Config(app=app, port=8000, log_level='info')
+    config = Config(app=app, port=PORT, log_level='info')
     server = Server(config=config)
     dispatcher.include_routers(router_start, router_admin, router_user)
     await gather(

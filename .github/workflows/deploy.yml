@@ -1,0 +1,147 @@
+name: Deploy
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # --------------------------------------------------
+      # 1. Install Cloudflare Tunnel
+      # --------------------------------------------------
+      - name: Install cloudflared
+        run: |
+          curl -L \
+            --output cloudflared.deb \
+            https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb
+
+          sudo dpkg -i cloudflared.deb
+
+      # --------------------------------------------------
+      # 2. Configure SSH
+      # --------------------------------------------------
+      - name: Configure SSH
+        env:
+          DEPLOY_SSH_KEY_B64: ${{ secrets.DEPLOY_SSH_KEY_B64 }}
+          CLOUDFLARE_ACCESS_CLIENT_ID: ${{ secrets.CLOUDFLARE_ACCESS_CLIENT_ID }}
+          CLOUDFLARE_ACCESS_CLIENT_SECRET: ${{ secrets.CLOUDFLARE_ACCESS_CLIENT_SECRET }}
+        run: |
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+
+          printf '%s' "$DEPLOY_SSH_KEY_B64" \
+            | base64 --decode \
+            > ~/.ssh/deploy_key
+
+          chmod 600 ~/.ssh/deploy_key
+
+          ssh-keygen -y -f ~/.ssh/deploy_key > /dev/null
+
+          cat > ~/.ssh/config << EOF
+          Host ${{ secrets.DEPLOY_HOST }}
+              HostName ${{ secrets.DEPLOY_HOST }}
+              User ${{ secrets.DEPLOY_USER }}
+              IdentityFile ~/.ssh/deploy_key
+              IdentitiesOnly yes
+              ProxyCommand env CLOUDFLARE_ACCESS_CLIENT_ID="$CLOUDFLARE_ACCESS_CLIENT_ID" CLOUDFLARE_ACCESS_CLIENT_SECRET="$CLOUDFLARE_ACCESS_CLIENT_SECRET" cloudflared access ssh --hostname %h
+              StrictHostKeyChecking no
+          EOF
+
+          chmod 600 ~/.ssh/config
+
+      # --------------------------------------------------
+      # 3. Test SSH connection
+      # --------------------------------------------------
+      - name: Test SSH connection
+        run: |
+          ssh \
+            -o ConnectTimeout=15 \
+            "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" \
+            "echo 'SSH connection successful'"
+
+      # --------------------------------------------------
+      # 4. Create production .env
+      # --------------------------------------------------
+      - name: Create production .env
+        env:
+          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+          ADMIN_USER_NAME: ${{ secrets.ADMIN_USER_NAME }}
+          PORT: ${{ secrets.PORT }}
+        run: |
+          ssh "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" \
+            "cp /opt/maintenance-bot/.env.example /opt/maintenance-bot/.env"
+
+          ssh "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" \
+            "sed -i 's|^BOT_TOKEN=.*|BOT_TOKEN=$BOT_TOKEN|' /opt/maintenance-bot/.env"
+
+          ssh "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" \
+            "sed -i 's|^ADMIN_USER_NAME=.*|ADMIN_USER_NAME=$ADMIN_USER_NAME|' /opt/maintenance-bot/.env"
+
+          ssh "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" \
+            "sed -i 's|^PORT=.*|PORT=$PORT|' /opt/maintenance-bot/.env"
+
+          ssh "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" \
+            "chmod 600 /opt/maintenance-bot/.env"
+
+      # --------------------------------------------------
+      # 5. Deploy
+      # --------------------------------------------------
+      - name: Deploy
+        run: |
+          ssh "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" << 'EOF'
+            set -e
+
+            cd /opt/maintenance-bot
+
+            echo "========================================"
+            echo "Pulling latest code..."
+            echo "========================================"
+
+            git pull origin master
+
+            echo "========================================"
+            echo "Checking Docker Compose configuration..."
+            echo "========================================"
+
+            docker compose config > /dev/null
+
+            echo "========================================"
+            echo "Building Docker image..."
+            echo "uv will install Python dependencies"
+            echo "inside the Docker build."
+            echo "========================================"
+
+            docker compose build --pull
+
+            echo "========================================"
+            echo "Starting bot..."
+            echo "========================================"
+
+            docker compose up -d
+
+            echo "========================================"
+            echo "Removing unused Docker images..."
+            echo "========================================"
+
+            docker image prune -f
+
+            echo "========================================"
+            echo "Deployment status:"
+            echo "========================================"
+
+            docker compose ps
+
+            echo "========================================"
+            echo "Bot logs:"
+            echo "========================================"
+
+            docker compose logs --tail=50 bot
+
+            echo "========================================"
+            echo "Deployment complete."
+            echo "========================================"
+          EOF
