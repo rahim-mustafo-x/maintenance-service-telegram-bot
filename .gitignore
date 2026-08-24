@@ -1,4 +1,6 @@
 .env
-.idea
-./db
-.gitignore
+.idea/
+db/
+__pycache__/
+*.py[cod]
+.venv/
