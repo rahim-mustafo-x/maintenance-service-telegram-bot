@@ -3,9 +3,9 @@ name = "maintenance-service-telegram-bot"
 version = "0.1.0"
 requires-python = ">=3.14"
 dependencies = [
-    "aiogram==3.30.0",
-    "python-dotenv>=1.2.2",
-    "aisqlite>=1.1.0",
-    "fastapi==0.141.1",
-    "uvicorn==0.52.3",
+    "aiogram~=3.31.0",
+    "python-dotenv~=1.2.3",
+    "pysqlite3~=0.6.0",
+    "fastapi~=0.141.1",
+    "uvicorn~=0.53.0",
 ]
