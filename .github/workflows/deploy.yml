@@ -81,27 +81,16 @@ jobs:
           APP_NAME: ${{ secrets.APP_NAME }}
           EUREKA_URL: ${{ secrets.EUREKA_URL }}
         run: |
-          ssh maintenance-server \
-            "cp /opt/maintenance-bot/.env.example /opt/maintenance-bot/.env"
-
-          ssh maintenance-server \
-            "sed -i 's|^BOT_TOKEN=.*|BOT_TOKEN=$BOT_TOKEN|' /opt/maintenance-bot/.env"
-
-          ssh maintenance-server \
-            "sed -i 's|^ADMIN_USER_NAME=.*|ADMIN_USER_NAME=$ADMIN_USER_NAME|' /opt/maintenance-bot/.env"
-
-          ssh maintenance-server \
-            "sed -i 's|^PORT=.*|PORT=$PORT|' /opt/maintenance-bot/.env"
-          
-          ssh maintenance-server \
-            "sed -i 's|^EUREKA_URL=.*|EUREKA_URL=EUREKA_URL|' /opt/maintenance-bot/.env"
-          
-          ssh maintenance-server \
-            "sed -i 's|^APP_NAME=.*|APP_NAME=APP_NAME|' /opt/maintenance-bot/.env"
+          ssh maintenance-server "cat > /opt/maintenance-bot/.env <<'EOF'
+          BOT_TOKEN=$BOT_TOKEN
+          ADMIN_USER_NAME=$ADMIN_USER_NAME
+          PORT=$PORT
+          APP_NAME=$APP_NAME
+          EUREKA_URL=$EUREKA_URL
+          EOF"
 
           ssh maintenance-server \
             "chmod 600 /opt/maintenance-bot/.env"
-
       # --------------------------------------------------
       # 5. Deploy
       # --------------------------------------------------
