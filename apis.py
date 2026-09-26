@@ -4,7 +4,18 @@ from database import Database
 from telegram_bot import bot
 from config import code_text
 
-app = FastAPI()
+app = FastAPI(
+    servers=[
+        {
+            'url':'/telegram-service',
+            'description':'via api gateway'
+        },
+        {
+            'url':'/',
+            'description':'local server'
+        }
+    ]
+)
 db = Database()
 
 @app.get("/")

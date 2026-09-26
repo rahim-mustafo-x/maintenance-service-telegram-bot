@@ -7,6 +7,9 @@ BOT_TOKEN = getenv('BOT_TOKEN')
 ADMINS = [5953769207]
 ADMIN_USER_NAME = getenv('ADMIN_USER_NAME')
 PORT = int(getenv('PORT', 8000))
+EUREKA_URL = getenv('EUREKA_URL')
+APP_NAME = getenv('APP_NAME')
+
 
 def code_text(code:str) ->str:
     return f'Tasdiqlash kodi <code>{code}</code>\nUshbu kodni hech kimga bermang!'

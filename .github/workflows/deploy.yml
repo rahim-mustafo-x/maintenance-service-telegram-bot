@@ -78,6 +78,8 @@ jobs:
           BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
           ADMIN_USER_NAME: ${{ secrets.ADMIN_USER_NAME }}
           PORT: ${{ secrets.PORT }}
+          APP_NAME: ${{ secrets.APP_NAME }}
+          EUREKA_URL: ${{ secrets.EUREKA_URL }}
         run: |
           ssh maintenance-server \
             "cp /opt/maintenance-bot/.env.example /opt/maintenance-bot/.env"
@@ -90,6 +92,12 @@ jobs:
 
           ssh maintenance-server \
             "sed -i 's|^PORT=.*|PORT=$PORT|' /opt/maintenance-bot/.env"
+          
+          ssh maintenance-server \
+            "sed -i 's|^EUREKA_URL=.*|EUREKA_URL=EUREKA_URL|' /opt/maintenance-bot/.env"
+          
+          ssh maintenance-server \
+            "sed -i 's|^APP_NAME=.*|APP_NAME=APP_NAME|' /opt/maintenance-bot/.env"
 
           ssh maintenance-server \
             "chmod 600 /opt/maintenance-bot/.env"
