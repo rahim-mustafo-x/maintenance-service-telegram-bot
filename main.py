@@ -10,7 +10,7 @@ from uvicorn import Server, Config
 from apis import app
 from telegram_bot import bot
 from config import (PORT, APP_NAME, EUREKA_URL)
-from py_eureka_client.eureka_client import init_async
+from py_eureka_client.eureka_client import init_async, stop_async
 
 dispatcher = Dispatcher()
 
@@ -35,10 +35,13 @@ async def main():
         router_user,
     )
 
-    await gather(
-        dispatcher.start_polling(bot),
-        server.serve(),
-    )
+    try:
+        await gather(
+            dispatcher.start_polling(bot),
+            server.serve(),
+        )
+    finally:
+        await stop_async()
 
 
 if __name__ == "__main__":
