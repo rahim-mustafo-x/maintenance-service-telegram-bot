@@ -24,8 +24,7 @@ async def main():
     config = Config(
         app=app,
         host="0.0.0.0",
-        port=PORT,
-        log_level="info",
+        port=PORT
     )
 
     server = Server(config=config)

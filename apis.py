@@ -5,6 +5,7 @@ from telegram_bot import bot
 from config import code_text
 from starlette.middleware import Middleware
 from starlette.middleware.cors import CORSMiddleware
+from config import APP_NAME
 
 
 middleware = [
@@ -21,7 +22,7 @@ app = FastAPI(
     middleware=middleware,
     servers=[
         {
-            'url':'/telegram-service',
+            'url':f'/{APP_NAME}',
             'description':'via api gateway'
         },
         {
