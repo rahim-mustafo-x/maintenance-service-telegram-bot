@@ -3,8 +3,22 @@ from model import TokenRequest
 from database import Database
 from telegram_bot import bot
 from config import code_text
+from starlette.middleware import Middleware
+from starlette.middleware.cors import CORSMiddleware
+
+
+middleware = [
+    Middleware(
+        CORSMiddleware,  # type: ignore
+        allow_origins=["*"],# type: ignore
+        allow_credentials=True,# type: ignore
+        allow_methods=["*"],# type: ignore
+        allow_headers=["*"],# type: ignore
+    )
+]
 
 app = FastAPI(
+    middleware=middleware,
     servers=[
         {
             'url':'/telegram-service',
