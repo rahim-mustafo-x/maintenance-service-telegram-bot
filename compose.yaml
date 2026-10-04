@@ -7,6 +7,8 @@ services:
     ports:
       - "${PORT}:${PORT}"
     restart: unless-stopped
+    networks:
+      - maintenance-net
 networks:
   maintenance-net:
     external: true
