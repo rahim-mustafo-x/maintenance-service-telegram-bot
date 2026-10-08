@@ -28,7 +28,6 @@ async def main():
     )
 
     server = Server(config=config)
-
     dispatcher.include_routers(
         router_start,
         router_admin,
